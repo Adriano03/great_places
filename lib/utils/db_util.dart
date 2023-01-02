@@ -10,7 +10,7 @@ class DbUtil {
       //Esse comando vai ser executado uma unica vez na criação do BD;
       onCreate: (db, version) {
         return db.execute(
-          'CREATE TABLE places (id TEXT PRIMARY KEY, title TEXT, image TEXT)',
+          'CREATE TABLE places (id TEXT PRIMARY KEY, title TEXT, image TEXT, latitude REAL, longitude REAL, address TEXT)',
         );
       },
       version: 1,

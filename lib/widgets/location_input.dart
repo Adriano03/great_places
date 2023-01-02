@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:great_places/screens/map_screen.dart';
 import 'package:great_places/utils/location_util.dart';
 import 'package:location/location.dart';
 
 class LocationInput extends StatefulWidget {
-  const LocationInput({super.key});
+  final Function onSelectPosition;
+
+  const LocationInput(this.onSelectPosition, {super.key});
 
   @override
   State<LocationInput> createState() => _LocationInputState();
@@ -13,29 +16,47 @@ class LocationInput extends StatefulWidget {
 class _LocationInputState extends State<LocationInput> {
   String? _previewImageUrl;
 
-  //Pegar localização atual;
-  Future<void> _getCurrentUserLocation() async {
-    final locData = await Location().getLocation();
-
+  void _showPreview(double lat, double lng) {
     final staticMapImageUrl = LocationUtil.generateLocationPreviewImage(
-      latitude: locData.latitude,
-      longitude: locData.longitude,
+      latitude: lat,
+      longitude: lng,
     );
     setState(() {
       _previewImageUrl = staticMapImageUrl;
     });
   }
 
+  //Pegar localização atual;
+  Future<void> _getCurrentUserLocation() async {
+    try {
+      final locData = await Location().getLocation();
+
+      _showPreview(locData.latitude!, locData.longitude!);
+      widget.onSelectPosition(
+        LatLng(
+          locData.latitude!,
+          locData.longitude!,
+        ),
+      );
+    } catch (e) {
+      return;
+    }
+  }
+
   //Selecionar localização no mapa;
   Future<void> _selectOnMap() async {
-    final selectLocation = Navigator.of(context).push(
+    final LatLng? selectPosition = await Navigator.of(context).push(
       MaterialPageRoute(
         fullscreenDialog: true,
         builder: (ctx) => const MapScreen(),
       ),
     );
 
-    if (selectLocation == null) return;
+    if (selectPosition == null) return;
+
+    _showPreview(selectPosition.latitude, selectPosition.longitude);
+
+    widget.onSelectPosition(selectPosition);
   }
 
   @override
